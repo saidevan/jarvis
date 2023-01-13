@@ -5,6 +5,8 @@ import wikipedia #pip install wikipedia
 import webbrowser
 import os
 import smtplib
+from ics import Calendar,Event
+import time
 
 engine = pyttsx3.init('sapi5')
 voices = engine.getProperty('voices')
@@ -30,6 +32,22 @@ def wishMe():
 
     speak("I am Friday Sir. Please tell me how may I help you")       
 
+def scheduleEvent():
+    speak("What is the name of the event?")
+    event_name = takeCommand()
+    speak("When would you like to schedule the event?")
+    event_time = takeCommand() # you can use dateutil parser to parse the date and time from the user input
+    # create the event
+    event = Event(name=event_name, begin=event_time, duration={"hours": 1})
+    # create the calendar
+    c = Calendar()
+    c.events.add(event)
+    #save the calendar to a file
+    with open("calendar.ics", "w") as f:
+        f.writelines(c)
+    speak(f"Event {event_name} has been scheduled for {event_time}")
+
+
 def takeCommand():
     #It takes microphone input from the user and returns string output
 
@@ -50,10 +68,19 @@ def takeCommand():
         return "None"
     return query
 
+def set_alarm():
+    speak("In how many minutes would you like to set the alarm?")
+    alarm_time = int(takeCommand())
+    alarm_time = alarm_time * 60 # convert minutes to seconds
+    time.sleep(alarm_time)
+    speak("Wake up Sir, your alarm is ringing.")
+
+
 def sendEmail(to, content):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()
     server.starttls()
+    #your gmail and password in place of the ""
     server.login('youremail@gmail.com', 'your-password')
     server.sendmail('youremail@gmail.com', to, content)
     server.close()
@@ -76,6 +103,9 @@ if __name__ == "__main__":
         elif 'open youtube' in query:
             webbrowser.open("youtube.com")
 
+        elif 'schedule' in query:
+            scheduleEvent()
+
         elif 'open google' in query:
             webbrowser.open("google.com")
 
@@ -92,18 +122,17 @@ if __name__ == "__main__":
         elif 'the time' in query:
             strTime = datetime.datetime.now().strftime("%H:%M:%S")    
             speak(f"Sir, the time is {strTime}")
-
-        elif 'open code' in query:
-            codePath = "C:\\Users\\Haris\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"
-            os.startfile(codePath)
+            
+        elif 'set an alarm' in query:
+            set_alarm()
 
         elif 'email to harry' in query:
             try:
                 speak("What should I say?")
                 content = takeCommand()
-                to = "saidevan360@gmail.com"    
+                to = "durgesh.coco@gmail.com"    
                 sendEmail(to, content)
                 speak("Email has been sent!")
             except Exception as e:
                 print(e)
-                speak("Sorry my friend devan. I am not able to send this email")    
+                speak("Sorry my friend. I am not able to send this email")    
